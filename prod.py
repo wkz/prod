@@ -8,10 +8,12 @@ import sys
 import time
 import yaml
 
+import anel
 import nge100
 
 HW = {
-    "rs,nge100": nge100.NGE100
+    "anel,net-control": anel.NetCtrl,
+    "rs,nge100": nge100.NGE100,
 }
 
 cfg = None
@@ -26,7 +28,7 @@ for cfgfile in ["~/.prod.yaml", "~/.config/prod.yaml", "/etc/prod.yaml"]:
 
     for top in ("devices", "aliases"):
         if top not in cfg:
-            cfg[top] = []
+            cfg[top] = {}
 
     for dev in cfg["devices"]:
         if "ports" not in cfg["devices"][dev]:
@@ -108,9 +110,9 @@ def showall(color):
         print(faint(invert("%-37s" % str(dev))))
 
         for port in dev:
-            names = port
+            names = str(port)
             for (alias, target) in cfg["aliases"].items():
-                if str(dev) + "/" + port == target:
+                if str(dev) + "/" + str(port) == target:
                     names += " \"" + alias + "\""
 
             print("%-30s  %-5s" % (names, green("on") if dev[port] else red("off")))
@@ -141,7 +143,7 @@ class PortParser(argparse.Action):
 
         if port[0] not in cfg["devices"]:
             raise argparse.ArgumentError(self, port[0] + " is not a known device")
-        if port[1] not in cfg["devices"][port[0]]["ports"]:
+        if port[1] not in str(cfg["devices"][port[0]]["ports"]):
             raise argparse.ArgumentError(self, port[0] + " has no port named " + port[1])
 
         namespace.port = port
