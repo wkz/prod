@@ -165,7 +165,7 @@ if not args.port:
 
 dev = probe(args.port[0])
 if not dev:
-    sys.exit("Unable to connect to " % args.port[0])
+    sys.exit("Unable to connect to " + args.port[0])
 
 if not args.cmd:
     args.cmd = "show"
