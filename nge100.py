@@ -1,11 +1,11 @@
-import pyvisa
-
 class NGE100(object):
     def __init__(self, name, cfg):
         self.name, self.cfg = name, cfg
 
         if "resource" not in cfg:
             raise ValueError(name + " does not specify any resource")
+
+        import pyvisa
 
         rm = pyvisa.ResourceManager()
         self.visa = rm.open_resource(cfg["resource"])

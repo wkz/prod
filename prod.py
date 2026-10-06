@@ -3,7 +3,6 @@
 
 import argcomplete, argparse
 import os
-import pyvisa
 import sys
 import time
 import yaml
