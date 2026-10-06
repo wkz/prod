@@ -21,11 +21,13 @@ class NetCtrl(object):
         if self.cache != None:
             return self.cache
         
-        stat = self.__fetch("Stat-").split(";")
+        # A header of device info, then "<br>" and "<name>;<state>;<lock>"
+        # for each relay, in order
+        relays = self.__fetch("Stat-").split("<br>")[1].split(";")
         bits = 0
 
-        for bit in range(8):
-            if int(stat[8 + 3 * bit + 1]):
+        for bit, state in enumerate(relays[1::3]):
+            if state == "1":
                 bits |= 1 << bit
 
         self.cache = bits
@@ -57,4 +59,5 @@ class NetCtrl(object):
             bits &= ~(1 << port)
 
         self.__fetch(f"Sw-0x{bits:02x},")
+        self.cache = bits
 

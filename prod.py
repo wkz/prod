@@ -3,7 +3,6 @@
 
 import argcomplete, argparse
 import os
-import pyvisa
 import sys
 import time
 import yaml
@@ -156,21 +155,25 @@ parser.add_argument("cmd", nargs="?", default=None, choices=list(ops.keys()),
 parser.add_argument("-C", dest="color", default=True, action="store_false",
                     help="Disable color in output.")
 
-argcomplete.autocomplete(parser)
-args = parser.parse_args()
+def main():
+    argcomplete.autocomplete(parser)
+    args = parser.parse_args()
 
-if not args.port:
-    showall(args.color)
-    sys.exit()
+    if not args.port:
+        showall(args.color)
+        sys.exit()
 
-dev = probe(args.port[0])
-if not dev:
-    sys.exit("Unable to connect to " % args.port[0])
+    dev = probe(args.port[0])
+    if not dev:
+        sys.exit("Unable to connect to " + args.port[0])
 
-if not args.cmd:
-    args.cmd = "show"
+    if not args.cmd:
+        args.cmd = "show"
 
-if args.cmd not in ops:
-    sys.exit(args.cmd + " is not a known operation")
+    if args.cmd not in ops:
+        sys.exit(args.cmd + " is not a known operation")
 
-ops[args.cmd](dev, args.port[1])
+    ops[args.cmd](dev, args.port[1])
+
+if __name__ == "__main__":
+    main()
