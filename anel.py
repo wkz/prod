@@ -1,5 +1,7 @@
 import urllib.request
 
+TIMEOUT = 5
+
 class NetCtrl(object):
     def __init__(self, name, cfg):
         self.name, self.cfg = name, cfg
@@ -14,8 +16,13 @@ class NetCtrl(object):
 
     def __fetch(self, op):
         url = self.cfg["url"] + "?" + op + self.cfg["auth"]
-        req = urllib.request.urlopen(url)
-        return req.read().decode()
+        try:
+            req = urllib.request.urlopen(url, timeout=TIMEOUT)
+            return req.read().decode()
+        except OSError as e:
+            # URLError wraps the socket error in .reason
+            reason = getattr(e, "reason", e)
+            raise ConnectionError(f"{self.name}: {reason}") from None
 
     def __all(self):
         if self.cache != None:
@@ -23,7 +30,11 @@ class NetCtrl(object):
         
         # A header of device info, then "<br>" and "<name>;<state>;<lock>"
         # for each relay, in order
-        relays = self.__fetch("Stat-").split("<br>")[1].split(";")
+        page = self.__fetch("Stat-").split("<br>")
+        if len(page) < 2:
+            raise ConnectionError(f"{self.name}: unexpected response from device")
+
+        relays = page[1].split(";")
         bits = 0
 
         for bit, state in enumerate(relays[1::3]):

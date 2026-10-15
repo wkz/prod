@@ -15,6 +15,9 @@ HW = {
     "rs,nge100": nge100.NGE100,
 }
 
+# Raised by probe() and the drivers for a device that cannot be used
+DEVICE_ERRORS = (ValueError, ConnectionError)
+
 cfg = None
 
 # Load config file if available
@@ -71,18 +74,16 @@ ops = {
 
 def probe(devstr):
     if "compatible" not in cfg["devices"][devstr]:
-        sys.exit(devstr + " does not specify any \"compatible\" attribute")
+        raise ValueError(devstr + " does not specify any \"compatible\" attribute")
 
     compat = cfg["devices"][devstr]["compatible"]
     if compat not in HW:
-        sys.exit("No driver for " + compat + " devices, required by " + devstr)
+        raise ValueError("No driver for " + compat + " devices, required by " + devstr)
 
     try:
-        dev = HW[compat](devstr, cfg["devices"][devstr])
-    except:
-        return None
-
-    return dev
+        return HW[compat](devstr, cfg["devices"][devstr])
+    except ImportError as e:
+        raise ValueError(f"{devstr}: driver for {compat} needs the Python module {e.name}") from None
 
 def showall(color):
     def paint(txt, code):
@@ -102,19 +103,19 @@ def showall(color):
     print(invert("%-30s  %-5s" % ("PORT", "STATE")))
 
     for devstr in cfg["devices"]:
-        dev = probe(devstr)
-        if not dev:
-            continue
+        print(faint(invert("%-37s" % devstr)))
 
-        print(faint(invert("%-37s" % str(dev))))
+        try:
+            dev = probe(devstr)
+            for port in dev:
+                names = str(port)
+                for (alias, target) in cfg["aliases"].items():
+                    if devstr + "/" + str(port) == target:
+                        names += " \"" + alias + "\""
 
-        for port in dev:
-            names = str(port)
-            for (alias, target) in cfg["aliases"].items():
-                if str(dev) + "/" + str(port) == target:
-                    names += " \"" + alias + "\""
-
-            print("%-30s  %-5s" % (names, green("on") if dev[port] else red("off")))
+                print("%-30s  %-5s" % (names, green("on") if dev[port] else red("off")))
+        except DEVICE_ERRORS as e:
+            print(red(str(e)))
 
 def PortCompleter(**kwargs):
     ports = list(cfg["aliases"].keys())
@@ -163,17 +164,14 @@ def main():
         showall(args.color)
         sys.exit()
 
-    dev = probe(args.port[0])
-    if not dev:
-        sys.exit("Unable to connect to " + args.port[0])
-
     if not args.cmd:
         args.cmd = "show"
 
-    if args.cmd not in ops:
-        sys.exit(args.cmd + " is not a known operation")
-
-    ops[args.cmd](dev, args.port[1])
+    try:
+        dev = probe(args.port[0])
+        ops[args.cmd](dev, args.port[1])
+    except DEVICE_ERRORS as e:
+        sys.exit(str(e))
 
 if __name__ == "__main__":
     main()
