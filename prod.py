@@ -9,10 +9,12 @@ import yaml
 
 import anel
 import nge100
+import waveshare
 
 HW = {
     "anel,net-control": anel.NetCtrl,
     "rs,nge100": nge100.NGE100,
+    "waveshare,modbus-poe-eth-relay-30ch": waveshare.ModbusRelay30CH,
 }
 
 # Raised by probe() and the drivers for a device that cannot be used

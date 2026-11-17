@@ -12,9 +12,10 @@ dependencies = ["argcomplete", "pyyaml"]
 
 [project.optional-dependencies]
 nge100 = ["pyvisa", "pyvisa-py"]
+waveshare = ["pymodbus>=3.6"]
 
 [project.scripts]
 prod = "prod:main"
 
 [tool.setuptools]
-py-modules = ["prod", "anel", "nge100"]
+py-modules = ["prod", "anel", "nge100", "waveshare"]

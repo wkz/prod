@@ -4,6 +4,7 @@ Switch power to lab equipment from the command line.  Supported hardware:
 
  - ANEL NET-CONTROL / NET-PwrCtrl, network controlled relays
  - Rohde & Schwarz NGE100 series power supplies, over VISA
+ - Waveshare Modbus POE ETH Relay 30CH, over Modbus RTU over TCP
 
 ```
 $ prod
@@ -43,6 +44,15 @@ devices:
         voltage: 12
         current: 2
 
+  relays:
+    compatible: waveshare,modbus-poe-eth-relay-30ch
+    host: 192.168.1.200
+    # port: 4196                # Modbus RTU over TCP
+    # unit: 1                   # Modbus device address
+    ports:
+      1:
+      30:
+
 aliases:
   tact1: ac/1
   tact2: ac/2
@@ -56,8 +66,8 @@ On Debian and Ubuntu:
     sudo apt install python3-argcomplete python3-yaml
 
 The NGE100 also needs `python3-pyvisa` and a VISA backend, such as
-`python3-pyvisa-py`.  Installing with `make` needs `python3-pip` and
-`python3-setuptools`.
+`python3-pyvisa-py`.  The Waveshare relay needs `python3-pymodbus`.
+Installing with `make` needs `python3-pip` and `python3-setuptools`.
 
 
 ## Installing
@@ -71,5 +81,5 @@ active in new shells.  Remove it all with `sudo make uninstall`.
 To install in a virtual environment of its own instead, with the Python
 dependencies from PyPI as listed in `pyproject.toml`:
 
-    pipx install .              # or '.[nge100]' for the NGE100
+    pipx install .              # or '.[nge100]', '.[waveshare]'
     cp prod.bash ~/.local/share/bash-completion/completions/prod
